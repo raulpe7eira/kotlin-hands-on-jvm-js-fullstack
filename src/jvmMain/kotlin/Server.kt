@@ -1,3 +1,4 @@
+import com.mongodb.ConnectionString
 import io.ktor.application.call
 import io.ktor.application.install
 import io.ktor.features.CORS
@@ -27,12 +28,18 @@ import org.litote.kmongo.coroutine.insertOne
 import org.litote.kmongo.coroutine.toList
 import org.litote.kmongo.eq
 
-val client = KMongo.createClient()
-val database = client.getDatabase("shoppingList")
-val collection = database.getCollection<ShoppingListItem>()
+val connectionString: ConnectionString? = System.getenv("MONGODB_URI")?.let {
+    ConnectionString("$it?retryWrites=false")
+}
+
+val client = if (connectionString != null) KMongo.createClient(connectionString) else KMongo.createClient()
+val collection = client
+    .getDatabase(connectionString?.database ?: "shoppingList")
+    .getCollection<ShoppingListItem>()
 
 fun main() {
-    embeddedServer(Netty, 9090) {
+    val port = System.getenv("PORT")?.toInt() ?: 9090
+    embeddedServer(Netty, port) {
         install(ContentNegotiation) {
             json()
         }
