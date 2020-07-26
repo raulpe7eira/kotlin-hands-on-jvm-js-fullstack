@@ -20,12 +20,16 @@ import io.ktor.routing.routing
 import io.ktor.serialization.json
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
+import org.litote.kmongo.async.KMongo
+import org.litote.kmongo.async.getCollection
+import org.litote.kmongo.coroutine.deleteOne
+import org.litote.kmongo.coroutine.insertOne
+import org.litote.kmongo.coroutine.toList
+import org.litote.kmongo.eq
 
-val shoppingList = mutableListOf(
-    ShoppingListItem("Cucumbers 🥒", 1),
-    ShoppingListItem("Tomatoes 🍅", 2),
-    ShoppingListItem("Orange Juice 🍊", 3)
-)
+val client = KMongo.createClient()
+val database = client.getDatabase("shoppingList")
+val collection = database.getCollection<ShoppingListItem>()
 
 fun main() {
     embeddedServer(Netty, 9090) {
@@ -53,15 +57,15 @@ fun main() {
             }
             route(ShoppingListItem.path) {
                 get {
-                    call.respond(shoppingList)
+                    call.respond(collection.find().toList())
                 }
                 post {
-                    shoppingList += call.receive<ShoppingListItem>()
+                    collection.insertOne(call.receive<ShoppingListItem>())
                     call.respond(HttpStatusCode.OK)
                 }
                 delete("/{id}") {
                     val id = call.parameters["id"]?.toInt() ?: error("Invalid delete request")
-                    shoppingList.removeIf { it.id == id }
+                    collection.deleteOne(ShoppingListItem::id eq id)
                     call.respond(HttpStatusCode.OK)
                 }
             }
