@@ -1,4 +1,4 @@
-# Kotlin Hands-On > Full Stack JVM & JS App
+# Kotlin Hands-On | Full Stack JVM & JS App
 
 This repository is the code corresponding to the [hands-on lab Full Stack JVM & JS App](https://play.kotlinlang.org/hands-on/Full%20Stack%20Web%20App%20with%20Kotlin%20Multiplatform/01_Introduction).
 
